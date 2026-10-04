@@ -1,0 +1,43 @@
+name: Build Treino APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar projeto
+        run: |
+          mkdir -p project
+          unzip -q Treino_Android_V2_GitHub_Actions.zip -d project
+          echo "Conteúdo:"
+          find project -maxdepth 3 -type f | head -100
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compilar APK
+        working-directory: project
+        run: gradle assembleDebug --no-daemon
+
+      - name: Renomear APK
+        run: |
+          APK=$(find project -name "*.apk" | head -1)
+          cp "$APK" Treino.apk
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Treino-APK
+          path: Treino.apk
